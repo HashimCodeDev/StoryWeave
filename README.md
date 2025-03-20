@@ -6,8 +6,6 @@
 What Is StoryWeave?
 StoryWeave is an interactive platform where users team up to write stories together in real-time. Everyone adds a sentence or paragraph, and then—bam!—an AI jumps in with wild, unexpected plot twists based on what’s already been written. Picture this: one minute you’re crafting a sweet romance, and the next, the AI declares, “Suddenly, the wedding cake explodes, revealing a secret alien invasion!” It’s chaotic, hilarious, and totally unique every time.
 
-## **Link to Video**
-
 ## **Link to video**
 
 Add the link here
@@ -16,8 +14,8 @@ Add the link here
 
 To set up this project, follow these steps:
 
-1. Clone the repository: `git clone <repository-url>`
-2. Navigate to the project directory: `cd <project-directory>`
+1. Clone the repository: `git clone https://github.com/HashimCodeDev/StoryWeave/`
+2. Navigate to the project directory: `cd StoryWeave`
 3. Install the required dependencies: `pip install -r requirements.txt`
 
 ## **Steps to Run**
@@ -25,7 +23,7 @@ To set up this project, follow these steps:
 To run the project, execute the following command:
 
 ```bash
-python main.py
+python -m uvicorn main:app --reload
 ```
 
 ## **Acknowledgements**
