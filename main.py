@@ -200,6 +200,10 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
                 if twist_id == current_twist.get(room_id) and username not in twist_votes[room_id][twist_id]:
                     if message["vote"] == "yes":
                         twist_votes[room_id][twist_id].add(username)
+
+            elif message["type"] == "get_story":
+                current_story = get_story(room_id)
+                await websocket.send_text(json.dumps({"type": "story_update", "story": current_story}))
     except WebSocketDisconnect:
         manager.disconnect(websocket, room_id)
         await manager.broadcast(
