@@ -1,28 +1,63 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect,Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-import torch
 from typing import Dict, List
 import json
 import uuid
 import asyncio
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import pipeline
+from pydantic import BaseModel
+from authentication import authenticate_user, register_user, User, users_db
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# Serve static files (for frontend)
-app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+# Define the allowed origins and methods
+origins = [
+    "http://localhost",  # Frontend origin (adjust this to your actual frontend URL)
+    "http://localhost:3000",  # If your frontend is running on port 3000 (example)
+    "*",  # This allows all origins, but it's recommended to be more specific in production
+]
 
-# Load model and tokenizer
-model_name = "gpt2"
-model = GPT2LMHeadModel.from_pretrained(model_name)
-tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+# Add the CORSMiddleware to handle CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # List of allowed origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
+
+
+# Response model
+class ResponseModel(BaseModel):
+    message: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+# Load AI model for plot twists (GPT-2)
+generator = pipeline("text-generation", model="gpt2")
 
 # In-memory storage (replace with a database later)
 story_data: Dict[str, str] = {}  # room_id -> story_text
 addition_count: Dict[str, int] = {}  # room_id -> addition_count
 current_twist: Dict[str, str] = {}  # room_id -> current_twist_id
 twist_votes: Dict[str, Dict[str, set]] = {}  # room_id -> twist_id -> set of usernames who voted yes
+
+@app.post("/register", response_model=ResponseModel)
+async def register(user: User):
+    """Register a new user."""
+    return register_user(user)
+
+@app.post("/login", response_model=ResponseModel)
+async def login(user: UserLogin):
+    """Login endpoint"""
+    if user.username in users_db and users_db[user.username] == user.password:
+        return {"message": "Login successful"}
+    raise HTTPException(status_code=401, detail="Invalid username or password")
 
 # Manage WebSocket connections
 class ConnectionManager:
@@ -96,14 +131,14 @@ async def handle_voting(room_id: str, twist_id: str, twist: str):
     del twist_votes[room_id][twist_id]
 
 # WebSocket endpoint
-@app.websocket("/ws/{room_id}/{username}")
+@app.websocket("/ws/{room_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
-    await manager.connect(websocket, room_id, username)  # Connect the user only once
+    await manager.connect(websocket, room_id, username)
     try:
         while True:
             data = await websocket.receive_text()
             message = json.loads(data)
-            if message["type"] == "add" and "text" in message:
+            if message["type"] == "add":
                 new_text = message["text"]
                 update_story(room_id, new_text)
                 current_story = get_story(room_id)
@@ -121,7 +156,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
                         room_id
                     )
                     asyncio.create_task(handle_voting(room_id, twist_id, twist))
-            elif message["type"] == "vote" and "twist_id" in message:
+            elif message["type"] == "vote":
                 twist_id = message["twist_id"]
                 if twist_id == current_twist.get(room_id) and username not in twist_votes[room_id][twist_id]:
                     if message["vote"] == "yes":
@@ -132,3 +167,4 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
             json.dumps({"type": "user_left", "username": username}),
             room_id
         )
+

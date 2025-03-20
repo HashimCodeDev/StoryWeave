@@ -27,6 +27,3 @@ python -m uvicorn main:app --reload
 ```
 
 ## **Acknowledgements**
-
-- Special thanks to the Raspberry Pi Foundation for their resources.
-- Thanks to the mentors and participants of the Grab A Pi Hacknight 2025 for their support and inspiration.
