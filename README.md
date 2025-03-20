@@ -1,11 +1,16 @@
-# **Grab A Pi Hacknight 2025**
+![Untitled-3](https://github.com/user-attachments/assets/f8416d90-40a6-4cfc-81e4-bca2ccf36202)
+
+# **StoryWeave**
 
 **Project Description:**
-This project is designed to showcase innovative uses of Raspberry Pi technology during the Grab A Pi Hacknight 2025. It aims to solve various challenges through creative applications of hardware and software.
+What Is StoryWeave?
+StoryWeave is an interactive platform where users team up to write stories together in real-time. Everyone adds a sentence or paragraph, and then—bam!—an AI jumps in with wild, unexpected plot twists based on what’s already been written. Picture this: one minute you’re crafting a sweet romance, and the next, the AI declares, “Suddenly, the wedding cake explodes, revealing a secret alien invasion!” It’s chaotic, hilarious, and totally unique every time.
 
 ## **Link to Video**
 
-[Link to project video](#) <!-- Add the actual link here -->
+## **Link to video**
+
+Add the link here
 
 ## **Installation**
 
