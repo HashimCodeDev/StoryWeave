@@ -9,9 +9,22 @@ import asyncio
 from transformers import pipeline
 from pydantic import BaseModel
 from authentication import authenticate_user, register_user, User, users_db
+import os
+from supabase import Client, create_client
 
 # Initialize FastAPI app
 app = FastAPI()
+
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# Ensure you have set these environment variables
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+
+# Create the Supabase client
+supabase: Client = create_client(url, key)
 
 # Define the allowed origins and methods
 origins = [
@@ -47,17 +60,43 @@ addition_count: Dict[str, int] = {}  # room_id -> addition_count
 current_twist: Dict[str, str] = {}  # room_id -> current_twist_id
 twist_votes: Dict[str, Dict[str, set]] = {}  # room_id -> twist_id -> set of usernames who voted yes
 
-@app.post("/register", response_model=ResponseModel)
-async def register(user: User):
-    """Register a new user."""
-    return register_user(user)
+@app.post("/register")
+async def register_user(user: User):
+    try:
+        
+        # Insert user into the 'users' table
+        result = supabase.from_('users').insert({
+            "username": user.username,
+            "password": user.password
+        }).execute()
+        
+        return {"message": "User registered successfully", "data": result.data}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+# Login endpoint to check user credentials
+@app.post("/login")
+async def login(user: User):
+    try:
+        # Sign in the user using username and password
+        result = supabase.from_('users').select('*').eq('username', user.username).eq('password', user.password).execute()
 
-@app.post("/login", response_model=ResponseModel)
-async def login(user: UserLogin):
-    """Login endpoint"""
-    if user.username in users_db and users_db[user.username] == user.password:
-        return {"message": "Login successful"}
-    raise HTTPException(status_code=401, detail="Invalid username or password")
+        if result.data:
+            return {"message": "Login successful", "user": result.data[0]}
+        else:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/rooms")
+async def get_rooms():
+    try:
+        # Fetch all rooms from the 'rooms' table
+        result = supabase.from_('rooms').select('*').execute()
+        print(result)
+        return {"message": "Rooms found", "data": result.data}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # Manage WebSocket connections
 class ConnectionManager:
@@ -167,4 +206,3 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
             json.dumps({"type": "user_left", "username": username}),
             room_id
         )
-
