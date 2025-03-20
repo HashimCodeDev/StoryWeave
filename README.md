@@ -1,21 +1,29 @@
-![Untitled-3](https://github.com/user-attachments/assets/f8416d90-40a6-4cfc-81e4-bca2ccf36202)
-# **[Project Name]**
+# **Grab A Pi Hacknight 2025**
 
+**Project Description:**
+This project is designed to showcase innovative uses of Raspberry Pi technology during the Grab A Pi Hacknight 2025. It aims to solve various challenges through creative applications of hardware and software.
 
-**Grab A Pi Hacknight 2025**
+## **Link to Video**
 
-> A short description of your project. Explain what your project does, what problem it solves, and why it's cool.
-
-
-## **Link to video**
-Add the link here
+[Link to project video](#) <!-- Add the actual link here -->
 
 ## **Installation**
-How on earth can we set up your project up and running?
 
-## **Steps to run**  
-Care to explain?
+To set up this project, follow these steps:
+
+1. Clone the repository: `git clone <repository-url>`
+2. Navigate to the project directory: `cd <project-directory>`
+3. Install the required dependencies: `pip install -r requirements.txt`
+
+## **Steps to Run**
+
+To run the project, execute the following command:
+
+```bash
+python main.py
+```
 
 ## **Acknowledgements**
-Give credit to any resources, tutorials, libraries helped you build your project.
 
+- Special thanks to the Raspberry Pi Foundation for their resources.
+- Thanks to the mentors and participants of the Grab A Pi Hacknight 2025 for their support and inspiration.
