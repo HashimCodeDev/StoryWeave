@@ -27,7 +27,7 @@ supabase: Client = create_client(url, key)
 origins = [
     "http://localhost",  # Frontend origin (adjust this to your actual frontend URL)
     "http://localhost:3000",
-    "https://storyweave-frontend.vercel.app/"  # If your frontend is running on port 3000 (example)
+    "https://storyweave-frontend.vercel.app"  # If your frontend is running on port 3000 (example)
     "*",  # This allows all origins, but it's recommended to be more specific in production
 ]
 
