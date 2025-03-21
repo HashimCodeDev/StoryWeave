@@ -4,8 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import Dict, List
 import json
-import uuid
-import asyncio
 from transformers import pipeline
 from pydantic import BaseModel
 from authentication import authenticate_user, register_user, User, users_db
