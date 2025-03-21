@@ -1,0 +1,15 @@
+{
+	"version": 2,
+	"builds": [
+		{
+			"src": "main.py",
+			"use": "@vercel/static-build"
+		}
+	],
+	"routes": [
+		{
+			"src": "/(.*)",
+			"dest": "main.py"
+		}
+	]
+}

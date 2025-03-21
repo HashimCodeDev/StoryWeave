@@ -140,7 +140,7 @@ def get_last_n_words(text: str, n: int) -> str:
     return " ".join(words[-n:]) if len(words) > n else text
 
 def generate_plot_twist(story: str) -> str:
-    prompt = get_last_n_words(story, 50) + " But then, something unexpected happened:"
+    prompt = get_last_n_words(story, 200) + " But then, something unexpected happened: "
     result = generator(prompt, max_length=100, num_return_sequences=1, do_sample=True)
     generated_text = result[0]["generated_text"]
     twist = generated_text[len(prompt):].strip().split(".")[0] + "."
