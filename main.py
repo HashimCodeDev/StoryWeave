@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect,Depends, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -14,7 +14,6 @@ from supabase import Client, create_client
 
 # Initialize FastAPI app
 app = FastAPI()
-
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
@@ -43,7 +42,6 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-
 # Response model
 class ResponseModel(BaseModel):
     message: str
@@ -59,12 +57,10 @@ generator = pipeline("text-generation", model="gpt2")
 story_data: Dict[str, str] = {}  # room_id -> story_text
 addition_count: Dict[str, int] = {}  # room_id -> addition_count
 current_twist: Dict[str, str] = {}  # room_id -> current_twist_id
-twist_votes: Dict[str, Dict[str, set]] = {}  # room_id -> twist_id -> set of usernames who voted yes
 
 @app.post("/register")
 async def register_user(user: User):
     try:
-        
         # Insert user into the 'users' table
         result = supabase.from_('users').insert({
             "username": user.username,
@@ -74,7 +70,7 @@ async def register_user(user: User):
         return {"message": "User registered successfully", "data": result.data}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
+
 # Login endpoint to check user credentials
 @app.post("/login")
 async def login(user: User):
@@ -152,24 +148,6 @@ def generate_plot_twist(story: str) -> str:
     twist = generated_text[len(prompt):].strip().split(".")[0] + "."
     return twist
 
-# Handle voting for plot twists
-async def handle_voting(room_id: str, twist_id: str, twist: str):
-    await asyncio.sleep(30)  # Wait 30 seconds for votes
-    yes_votes = len(twist_votes[room_id].get(twist_id, set()))
-    total_users = len(manager.active_connections.get(room_id, []))
-    if yes_votes > total_users / 2:
-        update_story(room_id, twist)
-        current_story = get_story(room_id)
-        await manager.broadcast(
-            json.dumps({"type": "story_update", "story": current_story, "twist_accepted": True}),
-            room_id
-        )
-    else:
-        await manager.broadcast(json.dumps({"type": "twist_rejected"}), room_id)
-    # Clean up
-    del current_twist[room_id]
-    del twist_votes[room_id][twist_id]
-
 # WebSocket endpoint
 @app.websocket("/ws/{room_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
@@ -188,20 +166,12 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
                 )
                 if increment_addition_count(room_id) % 5 == 0:
                     twist = generate_plot_twist(current_story)
-                    twist_id = str(uuid.uuid4())
-                    current_twist[room_id] = twist_id
-                    twist_votes[room_id] = {twist_id: set()}
+                    update_story(room_id, twist)  # Automatically add the plot twist
+                    current_story = get_story(room_id)
                     await manager.broadcast(
-                        json.dumps({"type": "twist_suggestion", "twist": twist, "twist_id": twist_id}),
+                        json.dumps({"type": "twist_accepted", "twist": twist}),
                         room_id
                     )
-                    asyncio.create_task(handle_voting(room_id, twist_id, twist))
-            elif message["type"] == "vote":
-                twist_id = message["twist_id"]
-                if twist_id == current_twist.get(room_id) and username not in twist_votes[room_id][twist_id]:
-                    if message["vote"] == "yes":
-                        twist_votes[room_id][twist_id].add(username)
-
             elif message["type"] == "get_story":
                 current_story = get_story(room_id)
                 await websocket.send_text(json.dumps({"type": "story_update", "story": current_story}))
