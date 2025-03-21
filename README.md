@@ -8,7 +8,8 @@ StoryWeave is an interactive platform where users team up to write stories toget
 
 ## **Link to video**
 
-Add the link here
+![Demo Video](https://drive.google.com/file/d/1MVkfO9Egz7OYMO5P1V_LLRtHLkTZutCb/view?usp=drivesdk)
+
 
 ## **Installation**
 
